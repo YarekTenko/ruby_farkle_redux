@@ -39,12 +39,11 @@ class Farkle
     end
 
     def play
-      until game_finished?
-        do_rounds
-      end
+      do_rounds until game_finished?
     end
 
     def game_finished?
+      true
     end
 
     def do_rounds
@@ -54,26 +53,26 @@ class Farkle
     end
 
     def turn_finished?(player)
-      roll_result = Dice.new(@d_num).roll
-      farkled?(roll_result) ? first_roll?(roll_result) : gained(roll_result)
+      result = Dice.new(@d_num).roll
+      farkled?(result) ? first_roll?(result) : gained(result)
     end
 
-    def farkled?(roll_result)
-      roll_hash(roll_result).each { |k, v| break false unless scored?(k, v.size) }
+    def farkled?(result)
+      roll_hash(result).each { |k, v| break false unless scored?(k, v.size) }
     end
 
     def scored?(k, v)
       (v % 3).zero? || k == 1 || k == 5
     end
 
-    def roll_hash(roll_result)
-      roll_result.group_by { |i| i }
+    def roll_hash(result)
+      result.group_by { |i| i }
     end
 
-    def first_roll?(roll_result)
+    def first_roll?(result)
     end
 
-    def gained(roll_result)
+    def gained(result)
     end
   end
 
