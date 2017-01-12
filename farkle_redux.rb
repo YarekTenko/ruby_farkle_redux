@@ -27,9 +27,16 @@ class Farkle
 
   # Game class contains the main game logic
   class Game
+    attr_reader :win_score
+    attr_accessor :players
+
+    def initialize(p_num, d_num, win_score)
+      @players = Array.new(p_num) { |n| Player.new(n + 1) }  
+    end
   end
 
   # ConsoleMessenger class outputs messages to console
   class ConsoleMessenger
+    def initialize end
   end
 end
