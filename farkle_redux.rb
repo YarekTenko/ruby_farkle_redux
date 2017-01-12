@@ -59,10 +59,21 @@ class Farkle
     end
 
     def farkled?(roll_result)
+      roll_hash(roll_result).each { |k, v| break false unless scored?(k, v.size) }
+    end
+
+    def scored?(k, v)
+      (v % 3).zero? || k == 1 || k == 5
+    end
+
+    def roll_hash(roll_result)
+      roll_result.group_by { |i| i }
+    end
+
+    def first_roll?(roll_result)
     end
 
     def gained(roll_result)
-
     end
   end
 
