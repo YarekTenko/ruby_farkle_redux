@@ -18,7 +18,7 @@ class Farkle
     def initialize(d_num)
       @d_num = d_num
     end
-    
+
     def roll
       Random.new_seed
       Array.new(@d_num) { rand(6) + 1 }
@@ -32,9 +32,9 @@ class Farkle
     attr_accessor :players
 
     def initialize(p_num, d_num, win_score)
-      @players   = Array.new(p_num) { |n| Player.new(n + 1) }  
+      @players   = Array.new(p_num) { |n| Player.new(n + 1) }
       @win_score = win_score
-
+      @d_num = d_num
       play
     end
 
@@ -52,16 +52,22 @@ class Farkle
         next if turn_finished?(player)
       end
     end
-    
+
     def turn_finished?(player)
+      roll_result = Dice.new(@d_num).roll
+      farkled?(roll_result) ? first_roll?(roll_result) : gained(roll_result)
     end
 
-    def roll_dice(player)
+    def farkled?(roll_result)
+    end
+
+    def gained(roll_result)
+
     end
   end
 
   # ConsoleMessenger class outputs messages to console
   class ConsoleMessenger
-    def initialize end
+    def initialize; end
   end
 end
