@@ -14,11 +14,11 @@ class Farkle
   # Dice class emulates dice and die rolling
   class Dice
     attr_accessor :d_num
-    attr_accessor :first_roll?
+    attr_accessor :first_roll
 
     def initialize(d_num)
       @d_num = d_num
-      @first_roll? = true
+      @first_roll = true
     end
 
     def roll
@@ -72,7 +72,7 @@ class Farkle
     end
 
     def first_roll?(dice)
-      dice.first_roll? = false
+      dice.first_roll = false
     end
 
     def gained(player, result, dice)
