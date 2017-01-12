@@ -27,11 +27,32 @@ class Farkle
 
   # Game class contains the main game logic
   class Game
-    attr_reader :win_score
+    attr_reader   :win_score
     attr_accessor :players
 
     def initialize(p_num, d_num, win_score)
-      @players = Array.new(p_num) { |n| Player.new(n + 1) }  
+      @players   = Array.new(p_num) { |n| Player.new(n + 1) }  
+      @win_score = win_score
+
+      play
+    end
+
+    def play
+      until game_finished?
+        do_rounds
+      end
+    end
+
+    def game_finished?
+    end
+
+    def do_rounds
+      players.each do |player|
+        roll_dice(player)
+      end
+    end
+    
+    def roll_dice(player)
     end
   end
 
