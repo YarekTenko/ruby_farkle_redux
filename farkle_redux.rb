@@ -28,6 +28,7 @@ class Farkle
   # Game class contains the main game logic
   class Game
     attr_reader   :win_score
+    attr_reader   :d_num
     attr_accessor :players
 
     def initialize(p_num, d_num, win_score)
@@ -48,10 +49,13 @@ class Farkle
 
     def do_rounds
       players.each do |player|
-        roll_dice(player)
+        next if turn_finished?(player)
       end
     end
     
+    def turn_finished?(player)
+    end
+
     def roll_dice(player)
     end
   end
