@@ -13,10 +13,12 @@ class Farkle
 
   # Dice class emulates dice and die rolling
   class Dice
-    attr_reader :d_num
+    attr_accessor :d_num
+    attr_accessor :first_roll?
 
     def initialize(d_num)
       @d_num = d_num
+      @first_roll? = true
     end
 
     def roll
@@ -53,8 +55,8 @@ class Farkle
     end
 
     def turn_finished?(player)
-      result = Dice.new(@d_num).roll
-      farkled?(result) ? first_roll?(result) : gained(result)
+      dice = Dice.new(@d_num)
+      farkled?(result) ? first_roll?(dice) : gained(player, result, dice)
     end
 
     def farkled?(result)
@@ -69,10 +71,18 @@ class Farkle
       result.group_by { |i| i }
     end
 
-    def first_roll?(result)
+    def first_roll?(dice)
+      dice.first_roll? = false
     end
 
-    def gained(result)
+    def gained(player, result, dice)
+      dice.first_roll? ? hot_dice? : keep_rolling?
+    end
+
+    def hot_dice?
+    end
+
+    def keep_rolling?
     end
   end
 
