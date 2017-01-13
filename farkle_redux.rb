@@ -47,7 +47,7 @@ class Farkle
     end
 
     def game_finished?
-      leading_players.size == 1 ? GAME_FINISHED : GAME_CONTINUES 
+      leading_players.size == 1 ? GAME_FINISHED : GAME_CONTINUES
     end
 
     def leading_players
@@ -111,11 +111,17 @@ class Farkle
       roll_hash(result)[roll].size % 3
     end
 
-    def keep_rolling
-      (@d_num -= 1).zero? ? TURN_OVER : bank_or_continue
+    def keep_rolling(player)
+      (@d_num -= 1).zero? ? TURN_OVER : bank_or_roll?(decision, player)
     end
 
-    def bank_or_continue
+    def bank_or_roll?(decision, player)
+      if decision == BANK
+        player.inter_score = player.score
+        TURN_OVER
+      else
+        ROLL
+      end
     end
   end
 
@@ -126,5 +132,8 @@ class Farkle
 
   TURN_OVER      = true
   GAME_FINISHED  = true
+  BANK           = true
+
   GAME_CONTINUES = false
+  ROLL           = false
 end
