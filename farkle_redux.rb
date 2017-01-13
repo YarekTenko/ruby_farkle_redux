@@ -42,10 +42,6 @@ class Farkle
       play
     end
 
-    def play
-      do_rounds until game_finished?
-    end
-
     def game_finished?
       leading_players.size == 1 ? GAME_FINISHED : GAME_CONTINUES
     end
@@ -125,15 +121,29 @@ class Farkle
     end
   end
 
-  # ConsoleMessenger class outputs messages to console
-  class ConsoleMessenger
-    def initialize; end
+  # ConsoleInterface class plays the game in console
+  class ConsoleInterface
+    def initialize(game)
+      @game = game
+    end
+
+    def play
+      do_rounds until game.game_finished?
+    end
   end
 
   TURN_OVER      = true
   GAME_FINISHED  = true
   BANK           = true
-
   GAME_CONTINUES = false
   ROLL           = false
+
+  def initialize(pnum, dnum, score_to_win)
+    game = Game.new(pnum, dnum, score_to_win)
+    @ci  = ConsoleInterface.new(game)
+  end
+
+  def play_in_console
+    @ci.play
+  end
 end
