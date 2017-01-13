@@ -81,12 +81,30 @@ class Farkle
       dice.first_roll ? hot_dice(player, result) : keep_rolling
     end
 
-    def hot_dice(result)
+    def hot_dice(player, result, dice)
       hd = roll_hash(result).map { |k, v| scored?(k, v.size) }.all?
-      hd ? hot_dice_handler(player) : keep_rolling
+      hd ? calc_result(player, result, dice) : keep_rolling
     end
 
-    def hot_dice_handler(player)
+    def calc_result(player, result)
+      player.inter_score = calc_roll_score(result, dice)
+    end
+
+    def calc_roll_score(result)
+      result.map do |roll|
+        case roll
+        when 1
+          set_of_three?(result, roll) ?        800 : 100
+        when 5
+          set_of_three?(result, roll) ?        500 : 50
+        else
+          set_of_three?(result, roll) ? roll * 100 : 0
+        end
+      end.sum
+    end
+
+    def set_of_three?(result, roll)
+      roll_hash(result)[roll].size % 3
     end
 
     def keep_rolling
