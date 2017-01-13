@@ -31,15 +31,14 @@ class Farkle
 
   # Game class contains the main game logic
   class Game
-    attr_reader   :win_score
+    attr_reader   :score_to_win
     attr_reader   :d_num
     attr_accessor :players
 
-    def initialize(p_num, d_num, win_score)
+    def initialize(p_num, d_num, score_to_win)
       @players   = Array.new(p_num) { |n| Player.new(n + 1) }
-      @win_score = win_score
+      @score_to_win = score_to_win
       @d_num = d_num
-      play
     end
 
     def game_finished?
@@ -47,7 +46,7 @@ class Farkle
     end
 
     def leading_players
-      @players.group_by { |p| p.score >= win_score }.max.last
+      @players.group_by { |p| p.score >= score_to_win }.max.last
     end
 
     def do_rounds
@@ -59,6 +58,10 @@ class Farkle
     def turn_finished?(player)
       dice = Dice.new(@d_num)
       farkled?(result) ? lost(player) : gained(player, result, dice)
+    end
+
+    def roll_dice
+      Dice.new(@d_num)
     end
 
     def farkled?(result)
@@ -124,11 +127,37 @@ class Farkle
   # ConsoleInterface class plays the game in console
   class ConsoleInterface
     def initialize(game)
-      @game = game
+      @g = game
     end
 
     def play
-      do_rounds until game.game_finished?
+      notify_welcome
+      gets.chomp
+      do_rounds until @g.game_finished?
+      notify_winner
+    end
+
+    def do_rounds
+      @g.players.each do |player|
+        roll = @g.roll_dice
+        @g.farkled?(roll) ? notify_lost(player) : notify_gained(player, roll)
+        # next if turn_finished?(player)
+      end
+    end
+
+    def notify_winner; end
+
+    def notify_lost(player)
+    end
+
+    def notify_gained(player, roll)
+    end
+
+    def notify_welcome
+      puts 'Welcome to Farkle'
+      puts "Number of players: #{@g.players.size}"
+      puts "Number of dice   : #{@g.d_num}"
+      puts "Score to win     : #{@g.score_to_win}"
     end
   end
 
@@ -138,8 +167,8 @@ class Farkle
   GAME_CONTINUES = false
   ROLL           = false
 
-  def initialize(pnum, dnum, score_to_win)
-    game = Game.new(pnum, dnum, score_to_win)
+  def initialize(p_num, d_num, score_to_win)
+    game = Game.new(p_num, d_num, score_to_win)
     @ci  = ConsoleInterface.new(game)
   end
 
@@ -147,3 +176,6 @@ class Farkle
     @ci.play
   end
 end
+
+farkle_game = Farkle.new(2, 5, 1000)
+farkle_game.play_in_console
