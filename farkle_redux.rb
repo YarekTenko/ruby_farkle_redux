@@ -53,12 +53,6 @@ class Farkle
       @players.group_by(&:score).max.last
     end
 
-    def do_rounds
-      players.each do |player|
-        next if turn_finished?(player)
-      end
-    end
-
     def turn_finished?(player)
       dice = Dice.new(@d_num)
       farkled?(result) ? lost(player) : gained(player, result, dice)
@@ -207,7 +201,7 @@ class Farkle
     def gained(player, roll)
       gain = @g.calc_result(player, roll) - player.inter_score
       notify_gained(player, gain)
-      hd = player.first_roll && @g.hot_dice?(player, roll)
+      hd = player.first_roll && @g.hot_dice?(roll)
       hd ? hot_dice(player, roll) : continue(player, roll)
     end
 
@@ -215,7 +209,9 @@ class Farkle
       puts '!HOT DICE!'
       puts 'Rolling again...'
       gets.chomp
-      gainded(player, roll)
+      nr = @g.roll_dice(@g.d_num)
+      notify_roll_result(nr)
+      gained(player, nr)
     end
 
     def continue(player, roll)
@@ -225,7 +221,7 @@ class Farkle
         notify_continue(player)
         process_turn(player, roll.size - 1)
       else
-        bank(player, roll)
+        bank(player)
       end
     end
 
@@ -282,5 +278,5 @@ class Farkle
   end
 end
 
-farkle_game = Farkle.new(2, 5, 300)
+farkle_game = Farkle.new(2, 2, 300)
 farkle_game.play_in_console
