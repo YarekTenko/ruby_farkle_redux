@@ -47,7 +47,11 @@ class Farkle
     end
 
     def game_finished?
-      true
+      leading_players.size == 1 ? GAME_FINISHED : GAME_CONTINUES 
+    end
+
+    def leading_players
+      @players.group_by { |p| p.score >= win_score }.max.last
     end
 
     def do_rounds
@@ -78,7 +82,7 @@ class Farkle
     end
 
     def gained(player, result, dice)
-      dice.first_roll ? hot_dice(player, result) : keep_rolling
+      dice.first_roll ? hot_dice(player, result) : keep_rolling(player)
     end
 
     def hot_dice(player, result, dice)
@@ -87,7 +91,7 @@ class Farkle
     end
 
     def calc_result(player, result)
-      player.inter_score = calc_roll_score(result, dice)
+      player.score += calc_roll_score(result)
     end
 
     def calc_roll_score(result)
@@ -108,6 +112,10 @@ class Farkle
     end
 
     def keep_rolling
+      (@d_num -= 1).zero? ? TURN_OVER : bank_or_continue
+    end
+
+    def bank_or_continue
     end
   end
 
@@ -115,4 +123,8 @@ class Farkle
   class ConsoleMessenger
     def initialize; end
   end
+
+  TURN_OVER      = true
+  GAME_FINISHED  = true
+  GAME_CONTINUES = false
 end
