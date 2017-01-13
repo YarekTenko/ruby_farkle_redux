@@ -36,7 +36,7 @@ class Farkle
     attr_accessor :players
 
     def initialize(p_num, d_num, score_to_win)
-      @players   = Array.new(p_num) { |n| Player.new(n + 1) }
+      @players      = Array.new(p_num) { |n| Player.new(n + 1) }
       @score_to_win = score_to_win
       @d_num = d_num
     end
@@ -61,14 +61,15 @@ class Farkle
     end
 
     def roll_dice
-      Dice.new(@d_num)
+      Dice.new(@d_num).roll
     end
 
     def farkled?(result)
-      roll_hash(result).each { |k, v| break false unless scored?(k, v.size) }
+      roll_hash(result).each { |k, v| break false if scored?(k, v.size) }
     end
 
     def scored?(k, v)
+      # puts "Passed to scored? #{k}, #{v}"
       (v % 3).zero? || k == 1 || k == 5
     end
 
@@ -139,7 +140,9 @@ class Farkle
 
     def do_rounds
       @g.players.each do |player|
-        roll = @g.roll_dice
+        notify_current_player(player)
+        notify_roll_result(roll = @g.roll_dice)
+        puts "farkled? #{@g.farkled?(roll)}"
         @g.farkled?(roll) ? notify_lost(player) : notify_gained(player, roll)
         # next if turn_finished?(player)
       end
@@ -147,10 +150,25 @@ class Farkle
 
     def notify_winner; end
 
+    def notify_current_player(player)
+      puts "Player #{player.id} turn"
+    end
+
+    def notify_roll_result(roll)
+      puts "You rolled: #{roll}"
+      gets.chomp
+    end
+
     def notify_lost(player)
+      puts 'Woops, looks like you FARKLE\'d!'
+      notify_score(player)
     end
 
     def notify_gained(player, roll)
+    end
+
+    def notify_score(player)
+      puts "Your current score is: #{player.score}"
     end
 
     def notify_welcome
