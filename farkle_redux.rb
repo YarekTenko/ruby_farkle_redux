@@ -34,19 +34,23 @@ class Farkle
     attr_reader   :score_to_win
     attr_reader   :d_num
     attr_accessor :players
+    attr_accessor :round
 
     def initialize(p_num, d_num, score_to_win)
       @players      = Array.new(p_num) { |n| Player.new(n + 1) }
       @score_to_win = score_to_win
       @d_num = d_num
+      @round = 0
     end
 
     def game_finished?
-      leading_players.size == 1 ? GAME_FINISHED : GAME_CONTINUES
+      only_one = leading_players.size == 1
+      winning_score = leading_players.first.score >= @score_to_win
+      only_one && winning_score ? GAME_FINISHED : GAME_CONTINUES
     end
 
     def leading_players
-      @players.group_by { |p| p.score >= score_to_win }.max.last
+      @players.group_by(&:score).max.last
     end
 
     def do_rounds
@@ -84,7 +88,7 @@ class Farkle
     def gained(player, result)
       player.first_roll ? hot_dice(player, result) : keep_rolling(player)
     end
-    
+
     def first_roll?(player)
       if player.first_roll
         player.first_roll = false
@@ -99,7 +103,7 @@ class Farkle
       hd ? calc_result(player, result, dice) : keep_rolling
     end
 
-    def hot_dice?(player, roll)
+    def hot_dice?(roll)
       roll_hash(roll).map { |k, v| scored?(k, v.size) }.all?
     end
 
@@ -115,7 +119,7 @@ class Farkle
         add_score(roll, set_of_three)
       end.sum
     end
-    
+
     def add_score(roll, set_of_three)
       case roll
       when 1
@@ -139,6 +143,11 @@ class Farkle
         ROLL
       end
     end
+
+    def bank(player)
+      player.inter_score = player.score
+      player.first_roll = true
+    end
   end
 
   # ConsoleInterface class plays the game in console
@@ -155,19 +164,31 @@ class Farkle
     end
 
     def do_rounds
+      notify_round
       @g.players.each do |player|
         notify_current_player(player)
         process_turn(player, @g.d_num)
-        # next if turn_finished?(player)
+        notify_turn_finished(player)
       end
     end
-    
+
     def process_turn(player, d_num)
       notify_roll_result(roll = @g.roll_dice(d_num))
       @g.farkled?(roll) ? lost(player) : gained(player, roll)
     end
 
-    def notify_winner; end
+    def notify_round
+      puts "Round #{@g.round += 1}"
+    end
+
+    def notify_turn_finished(player)
+      puts "Player #{player.id} finished his turn"
+    end
+
+    def notify_winner
+      puts "Player #{@g.leading_players.last.id} won!"
+      puts "Final score: #{@g.leading_players.last.score}"
+    end
 
     def notify_current_player(player)
       puts "Player #{player.id} turn"
@@ -177,7 +198,7 @@ class Farkle
       puts "You rolled: #{roll}"
       gets.chomp
     end
-    
+
     def lost(player)
       @g.lost(player)
       notify_lost(player)
@@ -186,7 +207,6 @@ class Farkle
     def gained(player, roll)
       gain = @g.calc_result(player, roll) - player.inter_score
       notify_gained(player, gain)
-      # Check hot dice
       hd = player.first_roll && @g.hot_dice?(player, roll)
       hd ? hot_dice(player, roll) : continue(player, roll)
     end
@@ -199,27 +219,34 @@ class Farkle
     end
 
     def continue(player, roll)
-      puts 'Keep rolling? (-1 die) '
+      puts 'Keep rolling? (y/n) '
       case gets.chomp.downcase
-      when 'y' 
-        process_turn(player, roll.size - 1) 
+      when 'y'
+        notify_continue(player)
+        process_turn(player, roll.size - 1)
       else
-        banked(player, roll)
+        bank(player, roll)
       end
     end
-    
-    def banked
+
+    def bank(player)
+      @g.bank(player)
+      notify_banked(player)
     end
 
-    def notify_banked
+    def notify_banked(player)
+      puts "Player #{player.id} banked his score"
+      notify_score(player)
     end
 
-    def notify_continue
+    def notify_continue(player)
+      puts "Player #{player.id} continues to roll with -1 die!"
     end
 
     def notify_lost(player)
       puts 'Woops, looks like you FARKLE\'d!'
       notify_score(player)
+      gets.chomp
     end
 
     def notify_gained(player, gain)
@@ -255,5 +282,5 @@ class Farkle
   end
 end
 
-farkle_game = Farkle.new(2, 5, 1000)
+farkle_game = Farkle.new(2, 5, 300)
 farkle_game.play_in_console
