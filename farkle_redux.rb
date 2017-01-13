@@ -53,11 +53,6 @@ class Farkle
       @players.group_by(&:score).max.last
     end
 
-    def turn_finished?(player)
-      dice = Dice.new(@d_num)
-      farkled?(result) ? lost(player) : gained(player, result, dice)
-    end
-
     def roll_dice(d_num)
       Dice.new(d_num).roll
     end
@@ -80,21 +75,7 @@ class Farkle
     end
 
     def gained(player, result)
-      player.first_roll ? hot_dice(player, result) : keep_rolling(player)
-    end
-
-    def first_roll?(player)
-      if player.first_roll
-        player.first_roll = false
-        true
-      else
-        false
-      end
-    end
-
-    def hot_dice(player, result, dice)
-      hd = roll_hash(result).map { |k, v| scored?(k, v.size) }.all?
-      hd ? calc_result(player, result, dice) : keep_rolling
+      calc_result(player, result) - player.inter_score
     end
 
     def hot_dice?(roll)
@@ -125,19 +106,6 @@ class Farkle
       end
     end
 
-    def keep_rolling(player)
-      (@d_num -= 1).zero? ? TURN_OVER : bank_or_roll?(decision, player)
-    end
-
-    def bank_or_roll?(decision, player)
-      if decision == BANK
-        player.inter_score = player.score
-        TURN_OVER
-      else
-        ROLL
-      end
-    end
-
     def bank(player)
       player.inter_score = player.score
       player.first_roll = true
@@ -152,7 +120,6 @@ class Farkle
 
     def play
       notify_welcome
-      gets.chomp
       do_rounds until @g.game_finished?
       notify_winner
     end
@@ -171,41 +138,18 @@ class Farkle
       @g.farkled?(roll) ? lost(player) : gained(player, roll)
     end
 
-    def notify_round
-      puts "Round #{@g.round += 1}"
-    end
-
-    def notify_turn_finished(player)
-      puts "Player #{player.id} finished his turn"
-    end
-
-    def notify_winner
-      puts "Player #{@g.leading_players.last.id} won!"
-      puts "Final score: #{@g.leading_players.last.score}"
-    end
-
-    def notify_current_player(player)
-      puts "Player #{player.id} turn"
-    end
-
-    def notify_roll_result(roll)
-      puts "You rolled: #{roll}"
-      gets.chomp
-    end
-
     def lost(player)
       @g.lost(player)
       notify_lost(player)
     end
 
     def gained(player, roll)
-      gain = @g.calc_result(player, roll) - player.inter_score
-      notify_gained(player, gain)
+      notify_gained(player, @g.gained(player, roll))
       hd = player.first_roll && @g.hot_dice?(roll)
-      hd ? hot_dice(player, roll) : continue(player, roll)
+      hd ? hot_dice(player) : continue(player, roll)
     end
 
-    def hot_dice(player, roll)
+    def hot_dice(player)
       puts '!HOT DICE!'
       puts 'Rolling again...'
       gets.chomp
@@ -228,6 +172,28 @@ class Farkle
     def bank(player)
       @g.bank(player)
       notify_banked(player)
+    end
+
+    def notify_round
+      puts "Round #{@g.round += 1}"
+    end
+
+    def notify_turn_finished(player)
+      puts "Player #{player.id} finished his turn"
+    end
+
+    def notify_winner
+      puts "Player #{@g.leading_players.last.id} won!"
+      puts "Final score: #{@g.leading_players.last.score}"
+    end
+
+    def notify_current_player(player)
+      puts "Player #{player.id} turn"
+    end
+
+    def notify_roll_result(roll)
+      puts "You rolled: #{roll}"
+      gets.chomp
     end
 
     def notify_banked(player)
@@ -259,14 +225,12 @@ class Farkle
       puts "Number of players: #{@g.players.size}"
       puts "Number of dice   : #{@g.d_num}"
       puts "Score to win     : #{@g.score_to_win}"
+      gets.chomp
     end
   end
 
-  TURN_OVER      = true
   GAME_FINISHED  = true
-  BANK           = true
   GAME_CONTINUES = false
-  ROLL           = false
 
   def initialize(p_num, d_num, score_to_win)
     game = Game.new(p_num, d_num, score_to_win)
@@ -278,5 +242,5 @@ class Farkle
   end
 end
 
-farkle_game = Farkle.new(2, 2, 300)
+farkle_game = Farkle.new(2, 5, 300)
 farkle_game.play_in_console
