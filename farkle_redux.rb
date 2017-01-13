@@ -2,12 +2,14 @@
 class Farkle
   # Player class contains all the player information
   class Player
-    attr_reader   :p_id
-    attr_accessor :p_score
+    attr_reader   :id
+    attr_accessor :score
+    attr_accessor :inter_score
 
-    def initialize(p_id)
-      @p_id    = p_id
-      @p_score = 0
+    def initialize(id)
+      @id          = id
+      @score       = 0
+      @inter_score = 0
     end
   end
 
@@ -56,7 +58,7 @@ class Farkle
 
     def turn_finished?(player)
       dice = Dice.new(@d_num)
-      farkled?(result) ? first_roll?(dice) : gained(player, result, dice)
+      farkled?(result) ? lost(player) : gained(player, result, dice)
     end
 
     def farkled?(result)
@@ -71,18 +73,23 @@ class Farkle
       result.group_by { |i| i }
     end
 
-    def first_roll?(dice)
-      dice.first_roll = false
+    def lost(player)
+      player.score = player.inter_score
     end
 
     def gained(player, result, dice)
-      dice.first_roll? ? hot_dice? : keep_rolling?
+      dice.first_roll ? hot_dice(player, result) : keep_rolling
     end
 
-    def hot_dice?
+    def hot_dice(result)
+      hd = roll_hash(result).map { |k, v| scored?(k, v.size) }.all?
+      hd ? hot_dice_handler(player) : keep_rolling
     end
 
-    def keep_rolling?
+    def hot_dice_handler(player)
+    end
+
+    def keep_rolling
     end
   end
 
