@@ -39,14 +39,14 @@ class Farkle
     def initialize(p_num, d_num, score_to_win)
       @players      = Array.new(p_num) { |n| Player.new(n + 1) }
       @score_to_win = score_to_win
-      @d_num = d_num
-      @round = 0
+      @d_num        = d_num
+      @round        = 0
     end
 
     def game_finished?
       only_one = leading_players.size == 1
       winning_score = leading_players.first.score >= @score_to_win
-      only_one && winning_score ? GAME_FINISHED : GAME_CONTINUES
+      only_one && winning_score ? true : false
     end
 
     def leading_players
@@ -89,7 +89,7 @@ class Farkle
     def calc_roll_score(result)
       rh = Hash.new(0)
       result.map do |roll|
-        rh[roll] += 1
+        rh[roll]    += 1
         set_of_three = (rh[roll] % 3).zero?
         add_score(roll, set_of_three)
       end.sum
@@ -108,7 +108,7 @@ class Farkle
 
     def bank(player)
       player.inter_score = player.score
-      player.first_roll = true
+      player.first_roll  = true
     end
   end
 
@@ -159,7 +159,7 @@ class Farkle
     end
 
     def continue(player, roll)
-      puts 'Keep rolling? (y/n) '
+      print 'Keep rolling? (y/n) >> '
       case gets.chomp.downcase
       when 'y'
         notify_continue(player)
@@ -175,11 +175,13 @@ class Farkle
     end
 
     def notify_round
+      puts '************************************'
       puts "Round #{@g.round += 1}"
     end
 
     def notify_turn_finished(player)
       puts "Player #{player.id} finished his turn"
+      puts '------------------------------------'
     end
 
     def notify_winner
@@ -188,6 +190,7 @@ class Farkle
     end
 
     def notify_current_player(player)
+      puts '------------------------------------'
       puts "Player #{player.id} turn"
     end
 
@@ -198,11 +201,11 @@ class Farkle
 
     def notify_banked(player)
       puts "Player #{player.id} banked his score"
-      notify_score(player)
     end
 
     def notify_continue(player)
       puts "Player #{player.id} continues to roll with -1 die!"
+      puts ''
     end
 
     def notify_lost(player)
@@ -228,9 +231,6 @@ class Farkle
       gets.chomp
     end
   end
-
-  GAME_FINISHED  = true
-  GAME_CONTINUES = false
 
   def initialize(p_num, d_num, score_to_win)
     game = Game.new(p_num, d_num, score_to_win)
