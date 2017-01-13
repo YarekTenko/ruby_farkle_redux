@@ -5,22 +5,22 @@ class Farkle
     attr_reader   :id
     attr_accessor :score
     attr_accessor :inter_score
+    attr_accessor :first_roll
 
     def initialize(id)
       @id          = id
       @score       = 0
       @inter_score = 0
+      @first_roll  = true
     end
   end
 
   # Dice class emulates dice and die rolling
   class Dice
     attr_accessor :d_num
-    attr_accessor :first_roll
 
     def initialize(d_num)
       @d_num = d_num
-      @first_roll = true
     end
 
     def roll
@@ -60,8 +60,8 @@ class Farkle
       farkled?(result) ? lost(player) : gained(player, result, dice)
     end
 
-    def roll_dice
-      Dice.new(@d_num).roll
+    def roll_dice(d_num)
+      Dice.new(d_num).roll
     end
 
     def farkled?(result)
@@ -69,7 +69,6 @@ class Farkle
     end
 
     def scored?(k, v)
-      # puts "Passed to scored? #{k}, #{v}"
       (v % 3).zero? || k == 1 || k == 5
     end
 
@@ -78,11 +77,21 @@ class Farkle
     end
 
     def lost(player)
-      player.score = player.inter_score
+      player.score      = player.inter_score
+      player.first_roll = true
     end
 
-    def gained(player, result, dice)
-      dice.first_roll ? hot_dice(player, result) : keep_rolling(player)
+    def gained(player, result)
+      player.first_roll ? hot_dice(player, result) : keep_rolling(player)
+    end
+    
+    def first_roll?(player)
+      if player.first_roll
+        player.first_roll = false
+        true
+      else
+        false
+      end
     end
 
     def hot_dice(player, result, dice)
@@ -90,25 +99,32 @@ class Farkle
       hd ? calc_result(player, result, dice) : keep_rolling
     end
 
+    def hot_dice?(player, roll)
+      roll_hash(roll).map { |k, v| scored?(k, v.size) }.all?
+    end
+
     def calc_result(player, result)
       player.score += calc_roll_score(result)
     end
 
     def calc_roll_score(result)
+      rh = Hash.new(0)
       result.map do |roll|
-        case roll
-        when 1
-          set_of_three?(result, roll) ?        800 : 100
-        when 5
-          set_of_three?(result, roll) ?        500 : 50
-        else
-          set_of_three?(result, roll) ? roll * 100 : 0
-        end
+        rh[roll] += 1
+        set_of_three = (rh[roll] % 3).zero?
+        add_score(roll, set_of_three)
       end.sum
     end
-
-    def set_of_three?(result, roll)
-      roll_hash(result)[roll].size % 3
+    
+    def add_score(roll, set_of_three)
+      case roll
+      when 1
+        set_of_three ?        800 : 100
+      when 5
+        set_of_three ?        400 : 50
+      else
+        set_of_three ? roll * 100 : 0
+      end
     end
 
     def keep_rolling(player)
@@ -141,11 +157,14 @@ class Farkle
     def do_rounds
       @g.players.each do |player|
         notify_current_player(player)
-        notify_roll_result(roll = @g.roll_dice)
-        puts "farkled? #{@g.farkled?(roll)}"
-        @g.farkled?(roll) ? notify_lost(player) : notify_gained(player, roll)
+        process_turn(player, @g.d_num)
         # next if turn_finished?(player)
       end
+    end
+    
+    def process_turn(player, d_num)
+      notify_roll_result(roll = @g.roll_dice(d_num))
+      @g.farkled?(roll) ? lost(player) : gained(player, roll)
     end
 
     def notify_winner; end
@@ -158,13 +177,54 @@ class Farkle
       puts "You rolled: #{roll}"
       gets.chomp
     end
+    
+    def lost(player)
+      @g.lost(player)
+      notify_lost(player)
+    end
+
+    def gained(player, roll)
+      gain = @g.calc_result(player, roll) - player.inter_score
+      notify_gained(player, gain)
+      # Check hot dice
+      hd = player.first_roll && @g.hot_dice?(player, roll)
+      hd ? hot_dice(player, roll) : continue(player, roll)
+    end
+
+    def hot_dice(player, roll)
+      puts '!HOT DICE!'
+      puts 'Rolling again...'
+      gets.chomp
+      gainded(player, roll)
+    end
+
+    def continue(player, roll)
+      puts 'Keep rolling? (-1 die) '
+      case gets.chomp.downcase
+      when 'y' 
+        process_turn(player, roll.size - 1) 
+      else
+        banked(player, roll)
+      end
+    end
+    
+    def banked
+    end
+
+    def notify_banked
+    end
+
+    def notify_continue
+    end
 
     def notify_lost(player)
       puts 'Woops, looks like you FARKLE\'d!'
       notify_score(player)
     end
 
-    def notify_gained(player, roll)
+    def notify_gained(player, gain)
+      puts "You gained: #{gain}"
+      notify_score(player)
     end
 
     def notify_score(player)
