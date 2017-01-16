@@ -144,6 +144,7 @@ class Farkle
     end
 
     def gained(player, roll)
+      notify_roll_score(roll)
       notify_gained(player, @g.gained(player, roll))
       hd = player.first_roll && @g.hot_dice?(roll)
       hd ? hot_dice(player) : continue(player, roll)
@@ -179,14 +180,19 @@ class Farkle
       puts "Round #{@g.round += 1}"
     end
 
+    def notify_roll_score(roll)
+      puts "Gain from the roll   : #{@g.calc_roll_score(roll)}"
+    end
+
     def notify_turn_finished(player)
       puts "Player #{player.id} finished his turn"
       puts '------------------------------------'
     end
 
     def notify_winner
+      puts "\n$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$"
       puts "Player #{@g.leading_players.last.id} won!"
-      puts "Final score: #{@g.leading_players.last.score}"
+      puts "Final score          : #{@g.leading_players.last.score}"
     end
 
     def notify_current_player(player)
@@ -195,7 +201,7 @@ class Farkle
     end
 
     def notify_roll_result(roll)
-      puts "You rolled: #{roll}"
+      puts "You rolled           : #{roll}"
       gets.chomp
     end
 
@@ -215,7 +221,7 @@ class Farkle
     end
 
     def notify_gained(player, gain)
-      puts "You gained: #{gain}"
+      puts "Total gain this round: #{gain}"
       notify_score(player)
     end
 
